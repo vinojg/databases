@@ -2,9 +2,32 @@ var db = require('../db');
 
 module.exports = {
   messages: {
-    get: function (message) {
+    get: function (callback) {
+
+      var command = 'SELECT * FROM messages';
+      var queries = [];
+      
+      db.query(command, queries, function(err, result, fields) {
+
+        
+        callback(err, result);
+      });
     }, // a function which produces all the messages
-    post: function () {
+    post: function (message, callback) {
+      var roomCommand = 'INSERT IGNORE INTO rooms(roomname) VALUES (?)';
+      db.query(roomCommand, [message.roomname], function(err, result) {
+        callback(err, result);
+      });
+      
+      var messageCommand = 
+      `INSERT INTO messages (text, username, roomname) VALUES
+        (?,
+        (SELECT id FROM users WHERE username = ?),
+        (SELECT id FROM rooms WHERE roomname = ?));  
+      `;
+      db.query(messageCommand, [message.message, message.username, message.roomname], function(err, result) {
+        callback(err, result);
+      });
       
     } // a function which can be used to insert a message into the database
   },
@@ -15,20 +38,23 @@ module.exports = {
       
     },
     post: function (username, callback) {
-      console.log(username);
-      var command = 'INSERT INTO users(username) VALUES (?)'; 
+      var command = 'INSERT IGNORE INTO users(username) VALUES (?)'; 
       //  {username: 'allen'}
       // ${username}
       db.query(command, username, function(err, result) {
-        console.log('INSIDE DB QUERY');
         callback(err, result);
-        // if (err) {
-        //   callback(err, null);
-        // }
-        // callback(null, result);
-        // console.log(`${username} inserted into users table!`);
       });
     }
   }
 };
+
+
+/*
+INSERT INTO messages (text, username, roomname) VALUES
+    -> (?,
+    -> (SELECT id FROM users WHERE username = ?),
+    -> (SELECT id FROM rooms WHERE roomname = ?)); [text, username, roomname]
+
+  INSERT IGNORE INTO rooms (roomname) VALUES ('lobby');
+*/
 

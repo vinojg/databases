@@ -22,6 +22,8 @@ CREATE TABLE messages (
   FOREIGN KEY(roomname) REFERENCES rooms(id)
 );
 
+ALTER TABLE rooms ADD UNIQUE (roomname);
+ALTER TABLE users ADD UNIQUE (username);
 
 
 /* Create other tables and define schemas for them here! */
